@@ -1,0 +1,9 @@
+name: ${pluginName}
+main: ${pluginMain}
+version: ${version}
+api-version: '${paperApiVersion}'
+author: Shane
+load: POSTWORLD
+description: ${pluginDescription}
+commands: {}
+permissions: {}
