@@ -9,18 +9,23 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.recipe.CraftingBookCategory;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class WoolCraftingPlugin extends JavaPlugin {
+public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
 
     private final List<NamespacedKey> recipeKeys = new ArrayList<>();
     private NamespacedKey woolWearPieceKey;
@@ -32,13 +37,21 @@ public final class WoolCraftingPlugin extends JavaPlugin {
         woolWearColorKey = new NamespacedKey(this, "wool_wear_color");
 
         registerRecipes();
-        getLogger().info("Enabled. Registered wool wear crafting recipes.");
+        getServer().getPluginManager().registerEvents(this, this);
+        discoverRecipesForOnlinePlayers();
+        getLogger().info("Enabled. Registered wool wear crafting recipes and recipe book unlocks.");
     }
 
     @Override
     public void onDisable() {
         removeRecipes();
+        getServer().updateRecipes();
         getLogger().info("Disabled.");
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        getServer().getScheduler().runTask(this, () -> discoverWoolWearRecipes(event.getPlayer()));
     }
 
     private void registerRecipes() {
@@ -49,11 +62,15 @@ public final class WoolCraftingPlugin extends JavaPlugin {
                 NamespacedKey key = new NamespacedKey(this, color.keyPrefix() + "_" + piece.keySuffix());
                 ShapedRecipe recipe = new ShapedRecipe(key, createWoolWear(piece, color));
                 recipe.shape(piece.shape());
+                recipe.setGroup(piece.recipeGroup());
+                recipe.setCategory(CraftingBookCategory.EQUIPMENT);
                 recipe.setIngredient('W', color.woolMaterial());
                 getServer().addRecipe(recipe);
                 recipeKeys.add(key);
             }
         }
+
+        getServer().updateRecipes();
     }
 
     private void removeRecipes() {
@@ -61,6 +78,16 @@ public final class WoolCraftingPlugin extends JavaPlugin {
             getServer().removeRecipe(key);
         }
         recipeKeys.clear();
+    }
+
+    private void discoverRecipesForOnlinePlayers() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            discoverWoolWearRecipes(player);
+        }
+    }
+
+    private void discoverWoolWearRecipes(Player player) {
+        player.discoverRecipes(recipeKeys);
     }
 
     @SuppressWarnings("deprecation")
@@ -122,6 +149,10 @@ public final class WoolCraftingPlugin extends JavaPlugin {
 
         private String keySuffix() {
             return keySuffix;
+        }
+
+        private String recipeGroup() {
+            return "wool_wear_" + keySuffix;
         }
 
         private String displayName() {

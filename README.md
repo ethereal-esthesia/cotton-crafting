@@ -15,6 +15,10 @@ craft must use the same wool color. The resulting leather armor item is dyed to
 match the wool color, renamed as wool wear, marked unbreakable, and stripped of
 visible armor/durability tooltip details.
 
+Wool wear recipes are added to the crafting recipe book under the equipment
+category. The plugin unlocks its recipe keys for players when they join, and for
+already-online players when the plugin is enabled during a reload.
+
 ## Build
 
 ```bash
