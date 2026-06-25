@@ -1,7 +1,19 @@
-# CottonCrafting
+# WoolCrafting
 
-Paper plugin that registers a small cotton-adjacent crafting recipe for the
-server: one white wool block can be unpacked into four string.
+Paper plugin that registers wool wear crafting recipes for the server.
+
+The plugin adds four wearable wool items:
+
+- `Wool Cap`
+- `Wool Jacket`
+- `Wool Trousers`
+- `Wool Boots`
+
+Each item uses the same recipe geometry as the matching leather armor piece.
+Recipes are registered for all 16 wool colors, and every ingredient in a single
+craft must use the same wool color. The resulting leather armor item is dyed to
+match the wool color, renamed as wool wear, marked unbreakable, and stripped of
+visible armor/durability tooltip details.
 
 ## Build
 
@@ -12,7 +24,7 @@ server: one white wool block can be unpacked into four string.
 The release jar is named:
 
 ```text
-build/libs/CottonCrafting-<pluginVersion>-paper-<paperApiVersion>.jar
+build/libs/WoolCrafting-<pluginVersion>-paper-<paperApiVersion>.jar
 ```
 
 ## Release Pinning
