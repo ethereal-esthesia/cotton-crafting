@@ -23,7 +23,6 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.MerchantRecipe;
-import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -120,8 +119,12 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
             }
         }
 
-        registerWovenSaddleRecipe();
-        registerWovenSacRecipe();
+        for (WoolColor color : WoolColor.values()) {
+            for (Material slab : slabMaterials()) {
+                registerWovenSaddleRecipe(color, slab);
+            }
+            registerWovenBundleRecipe(color);
+        }
         getServer().updateRecipes();
     }
 
@@ -323,8 +326,8 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         return meta != null && meta.getPersistentDataContainer().has(key, PersistentDataType.STRING);
     }
 
-    private void registerWovenSacRecipe() {
-        NamespacedKey key = new NamespacedKey(this, "woven_sac");
+    private void registerWovenBundleRecipe(WoolColor color) {
+        NamespacedKey key = new NamespacedKey(this, color.keyPrefix() + "_woven_bundle");
         ShapedRecipe recipe = new ShapedRecipe(key, createWovenSac());
         recipe.shape(
             "SWS",
@@ -334,7 +337,7 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         recipe.setGroup("woven_sac");
         recipe.setCategory(CraftingBookCategory.EQUIPMENT);
         recipe.setIngredient('S', Material.STRING);
-        recipe.setIngredient('W', new RecipeChoice.MaterialChoice(woolMaterials()));
+        recipe.setIngredient('W', color.woolMaterial());
         getServer().addRecipe(recipe);
         recipeKeys.add(key);
     }
@@ -346,14 +349,14 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
             throw new IllegalStateException("BUNDLE did not provide item metadata");
         }
 
-        meta.itemName(Component.text("Woven Sac"));
+        meta.itemName(Component.text("Woven Bundle"));
         meta.getPersistentDataContainer().set(wovenSacKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
 
-    private void registerWovenSaddleRecipe() {
-        NamespacedKey key = new NamespacedKey(this, "woven_saddle");
+    private void registerWovenSaddleRecipe(WoolColor color, Material slab) {
+        NamespacedKey key = new NamespacedKey(this, color.keyPrefix() + "_" + recipeKeyPart(slab) + "_woven_saddle");
         ShapedRecipe recipe = new ShapedRecipe(key, createWovenSaddle());
         recipe.shape(
             "HHH",
@@ -362,8 +365,8 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         recipe.setGroup("woven_saddle");
         recipe.setCategory(CraftingBookCategory.EQUIPMENT);
         recipe.setIngredient('H', Material.HONEYCOMB);
-        recipe.setIngredient('W', new RecipeChoice.MaterialChoice(woolMaterials()));
-        recipe.setIngredient('S', new RecipeChoice.MaterialChoice(slabMaterials()));
+        recipe.setIngredient('W', color.woolMaterial());
+        recipe.setIngredient('S', slab);
         getServer().addRecipe(recipe);
         recipeKeys.add(key);
     }
@@ -394,14 +397,6 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         return false;
     }
 
-    private List<Material> woolMaterials() {
-        List<Material> materials = new ArrayList<>();
-        for (WoolColor color : WoolColor.values()) {
-            materials.add(color.woolMaterial());
-        }
-        return materials;
-    }
-
     private List<Material> slabMaterials() {
         List<Material> materials = new ArrayList<>();
         for (Material material : Material.values()) {
@@ -410,6 +405,10 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
             }
         }
         return materials;
+    }
+
+    private String recipeKeyPart(Material material) {
+        return material.name().toLowerCase();
     }
 
     private enum WoolWearPiece {

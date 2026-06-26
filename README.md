@@ -12,7 +12,7 @@ The plugin adds four wearable wool items:
 It also adds:
 
 - `Woven Saddle`, a normal saddle with a custom name
-- `Woven Sac`, a normal bundle with a custom name
+- `Woven Bundle`, a normal bundle with a custom name
 
 Each item uses the same recipe geometry as the matching leather armor piece.
 Recipes are registered for all 16 wool colors, and every ingredient in a single
@@ -20,10 +20,13 @@ craft must use the same wool color. The resulting leather armor item is dyed to
 match the wool color, renamed as wool wear, marked unbreakable, and stripped of
 visible armor/durability tooltip details.
 
-Wool wear, woven saddle, and woven sac recipes are added to the crafting recipe
-book under the equipment category. The plugin unlocks its recipe keys for
+Wool wear, woven saddle, and woven bundle recipes are added to the crafting
+recipe book under the equipment category. The plugin unlocks its recipe keys for
 players when they join, and for already-online players when the plugin is enabled
-during a reload, so the recipes appear in recipe book search.
+during a reload, so the recipes appear in recipe book search. Woven bundle
+recipes are registered per wool color, and woven saddle recipes are registered
+per wool color and slab type, so the client receives concrete recipe book
+entries instead of broad ingredient-choice recipes.
 
 The woven saddle recipe is:
 
@@ -32,7 +35,7 @@ Honeycomb  Honeycomb  Honeycomb
 Wool       Any Slab   Wool
 ```
 
-The woven sac recipe is:
+The woven bundle recipe is:
 
 ```text
 String  Wool  String
