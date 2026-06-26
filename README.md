@@ -5,8 +5,8 @@ Paper plugin that registers wool wear crafting recipes for the server.
 The plugin adds four wearable wool items:
 
 - `Wool Cap`
-- `Wool Jacket`
-- `Wool Trousers`
+- `Wool Tunic`
+- `Wool Pants`
 - `Wool Boots`
 
 It also adds:
@@ -53,8 +53,8 @@ Shepherd trade replacements:
 
 - colored wool sales become `Cloth Boots` sales for 12-24 emeralds
 - colored carpet sales become `Cloth Cap` sales for 12-24 emeralds
-- colored bed sales become `Cloth Vest` sales for 12-24 emeralds
-- banner/map-marker sales become `Cloth Leggings` sales for 12-24 emeralds
+- colored bed sales become `Cloth Tunic` sales for 12-24 emeralds
+- banner/map-marker sales become `Cloth Pants` sales for 12-24 emeralds
 - painting sales become `Cloth Saddle` sales for 12-24 emeralds
 
 These shepherd cloth trades always sell white cloth gear.

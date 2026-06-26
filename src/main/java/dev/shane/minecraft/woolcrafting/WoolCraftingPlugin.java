@@ -235,10 +235,10 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
             return createClothGearTrade(recipe, WoolWearPiece.CAP, "Cloth Cap");
         }
         if (isColoredBedSale(recipe)) {
-            return createClothGearTrade(recipe, WoolWearPiece.JACKET, "Cloth Vest");
+            return createClothGearTrade(recipe, WoolWearPiece.TUNIC, "Cloth Tunic");
         }
         if (isMapMarkerSale(recipe)) {
-            return createClothGearTrade(recipe, WoolWearPiece.TROUSERS, "Cloth Leggings");
+            return createClothGearTrade(recipe, WoolWearPiece.PANTS, "Cloth Pants");
         }
         if (isPaintingSale(recipe)) {
             return createClothSaddleTrade(recipe);
@@ -416,12 +416,12 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
             "WWW",
             "W W"
         }),
-        JACKET("jacket", "Wool Jacket", Material.LEATHER_CHESTPLATE, new String[] {
+        TUNIC("tunic", "Wool Tunic", Material.LEATHER_CHESTPLATE, new String[] {
             "W W",
             "WWW",
             "WWW"
         }),
-        TROUSERS("trousers", "Wool Trousers", Material.LEATHER_LEGGINGS, new String[] {
+        PANTS("pants", "Wool Pants", Material.LEATHER_LEGGINGS, new String[] {
             "WWW",
             "W W",
             "W W"
