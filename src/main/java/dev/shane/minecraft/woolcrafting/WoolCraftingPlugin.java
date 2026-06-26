@@ -279,51 +279,21 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
     }
 
     private boolean isManagedTradeProfession(Villager.Profession profession) {
-        return profession == Villager.Profession.LEATHERWORKER || profession == Villager.Profession.SHEPHERD;
+        return profession == Villager.Profession.SHEPHERD;
     }
 
     private MerchantRecipe rewriteVillagerRecipe(Villager villager, MerchantRecipe recipe) {
         if (villager.getProfession() == Villager.Profession.SHEPHERD) {
             return rewriteShepherdRecipe(recipe);
         }
-        if (villager.getProfession() == Villager.Profession.LEATHERWORKER) {
-            return rewriteLeatherworkerRecipe(recipe);
-        }
-        return null;
-    }
-
-    private MerchantRecipe rewriteLeatherworkerRecipe(MerchantRecipe recipe) {
-        if (isRabbitHidePurchase(recipe)) {
-            return createWovenSacTrade(recipe);
-        }
-        if (isSaddleSale(recipe)) {
-            return copyRecipeWithResult(recipe, createWovenSaddle());
-        }
-
-        WoolWearPiece tradedPiece = tradedLeatherArmorPiece(recipe);
-        if (tradedPiece != null) {
-            return copyRecipeWithResult(recipe, createWoolWear(tradedPiece, WoolColor.WHITE));
-        }
-
-        if (hasLeatherIngredient(recipe)) {
-            MerchantRecipe replacement = copyRecipeWithResult(recipe, recipe.getResult());
-            List<ItemStack> ingredients = new ArrayList<>();
-            for (ItemStack ingredient : recipe.getIngredients()) {
-                if (ingredient.getType() == Material.LEATHER) {
-                    ingredients.add(new ItemStack(Material.STRING, ingredient.getAmount()));
-                } else {
-                    ingredients.add(ingredient.clone());
-                }
-            }
-            replacement.setIngredients(ingredients);
-            return replacement;
-        }
-
         return null;
     }
 
     private MerchantRecipe rewriteShepherdRecipe(MerchantRecipe recipe) {
         if (hasStringTag(recipe.getResult(), woolWearPieceKey)) {
+            return null;
+        }
+        if (hasBooleanTag(recipe.getResult(), wovenSaddleKey)) {
             return null;
         }
         if (isColoredWoolSale(recipe)) {
@@ -337,6 +307,9 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         }
         if (isMapMarkerSale(recipe)) {
             return createClothGearTrade(recipe, WoolWearPiece.TROUSERS, "Cloth Leggings");
+        }
+        if (isPaintingSale(recipe)) {
+            return createClothSaddleTrade(recipe);
         }
         return null;
     }
@@ -365,22 +338,14 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         return ingredients;
     }
 
-    private boolean isRabbitHidePurchase(MerchantRecipe recipe) {
-        return recipe.getResult().getType() == Material.EMERALD && hasIngredient(recipe, Material.RABBIT_HIDE);
-    }
-
-    private MerchantRecipe createWovenSacTrade(MerchantRecipe original) {
-        MerchantRecipe replacement = copyRecipeWithResult(original, createWovenSac());
-        replacement.setIngredients(List.of(new ItemStack(Material.EMERALD, randomWovenSacPrice())));
+    private MerchantRecipe createClothGearTrade(MerchantRecipe original, WoolWearPiece piece, String displayName) {
+        MerchantRecipe replacement = copyRecipeWithResult(original, createWoolWear(piece, WoolColor.WHITE, displayName));
+        replacement.setIngredients(List.of(new ItemStack(Material.EMERALD, randomClothGearPrice())));
         return replacement;
     }
 
-    private int randomWovenSacPrice() {
-        return ThreadLocalRandom.current().nextInt(16, 25);
-    }
-
-    private MerchantRecipe createClothGearTrade(MerchantRecipe original, WoolWearPiece piece, String displayName) {
-        MerchantRecipe replacement = copyRecipeWithResult(original, createWoolWear(piece, WoolColor.WHITE, displayName));
+    private MerchantRecipe createClothSaddleTrade(MerchantRecipe original) {
+        MerchantRecipe replacement = copyRecipeWithResult(original, createWovenSaddle("Cloth Saddle"));
         replacement.setIngredients(List.of(new ItemStack(Material.EMERALD, randomClothGearPrice())));
         return replacement;
     }
@@ -405,40 +370,12 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         return isSale(recipe) && recipe.getResult().getType().name().endsWith("_BANNER");
     }
 
+    private boolean isPaintingSale(MerchantRecipe recipe) {
+        return isSale(recipe) && recipe.getResult().getType() == Material.PAINTING;
+    }
+
     private boolean isSale(MerchantRecipe recipe) {
         return recipe.getResult().getType() != Material.EMERALD;
-    }
-
-    private boolean isSaddleSale(MerchantRecipe recipe) {
-        ItemStack result = recipe.getResult();
-        return result.getType() == Material.SADDLE && !hasBooleanTag(result, wovenSaddleKey);
-    }
-
-    private WoolWearPiece tradedLeatherArmorPiece(MerchantRecipe recipe) {
-        if (hasStringTag(recipe.getResult(), woolWearPieceKey)) {
-            return null;
-        }
-
-        Material result = recipe.getResult().getType();
-        for (WoolWearPiece piece : WoolWearPiece.values()) {
-            if (piece.material() == result) {
-                return piece;
-            }
-        }
-        return null;
-    }
-
-    private boolean hasLeatherIngredient(MerchantRecipe recipe) {
-        return hasIngredient(recipe, Material.LEATHER);
-    }
-
-    private boolean hasIngredient(MerchantRecipe recipe, Material material) {
-        for (ItemStack ingredient : recipe.getIngredients()) {
-            if (ingredient.getType() == material) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean hasBooleanTag(ItemStack item, NamespacedKey key) {
@@ -505,13 +442,17 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
     }
 
     private ItemStack createWovenSaddle() {
+        return createWovenSaddle("Woven Saddle");
+    }
+
+    private ItemStack createWovenSaddle(String displayName) {
         ItemStack item = new ItemStack(Material.SADDLE);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             throw new IllegalStateException("SADDLE did not provide item metadata");
         }
 
-        meta.itemName(Component.text("Woven Saddle"));
+        meta.itemName(Component.text(displayName));
         meta.getPersistentDataContainer().set(wovenSaddleKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;

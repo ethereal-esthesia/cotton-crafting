@@ -49,10 +49,9 @@ Wool    Wool  Wool
 
 ## Tailors
 
-Shepherd and leatherworker villagers are treated as tailors by this plugin.
-Existing loaded villagers, newly spawned villagers, and villagers loaded with
-chunks are given the visible custom name `Tailor`, and their trades are rewritten
-when possible.
+Shepherd villagers are treated as tailors by this plugin. Existing loaded
+shepherds, newly spawned shepherds, and shepherds loaded with chunks are given
+the visible custom name `Tailor`, and their trades are rewritten when possible.
 
 Shepherd trade replacements:
 
@@ -60,15 +59,9 @@ Shepherd trade replacements:
 - colored carpet sales become `Cloth Cap` sales for 12-24 emeralds
 - colored bed sales become `Cloth Vest` sales for 12-24 emeralds
 - banner/map-marker sales become `Cloth Leggings` sales for 12-24 emeralds
+- painting sales become `Cloth Saddle` sales for 12-24 emeralds
 
 These shepherd cloth trades always sell white cloth gear.
-
-Leatherworker trade replacements:
-
-- leather purchases become string purchases
-- rabbit hide purchases become `Woven Sac` sales for 16-24 emeralds
-- saddle sales become `Woven Saddle` sales
-- leather armor sales become the matching white wool wear item
 
 The vanilla profession label in the client trade UI still comes from Minecraft's
 language files; changing that label globally would require a resource pack.
