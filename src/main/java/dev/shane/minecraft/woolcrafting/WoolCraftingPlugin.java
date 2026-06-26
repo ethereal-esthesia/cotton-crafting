@@ -12,6 +12,9 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -29,9 +32,11 @@ import java.util.List;
 public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
 
     private final List<NamespacedKey> recipeKeys = new ArrayList<>();
+    private final List<NamespacedKey> woolWearRecipeKeys = new ArrayList<>();
     private NamespacedKey woolWearPieceKey;
     private NamespacedKey woolWearColorKey;
     private NamespacedKey wovenSaddleKey;
+    private NamespacedKey wovenSaddleRecipeKey;
 
     @Override
     public void onEnable() {
@@ -54,7 +59,37 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        getServer().getScheduler().runTask(this, () -> discoverWoolWearRecipes(event.getPlayer()));
+        getServer().getScheduler().runTask(this, () -> discoverRecipesForPlayer(event.getPlayer()));
+    }
+
+    @EventHandler
+    public void onEntityPickupItem(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        if (shouldDiscoverWovenSaddle(event.getItem().getItemStack())) {
+            discoverWovenSaddleRecipe(player);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        if (shouldDiscoverWovenSaddle(event.getCurrentItem()) || shouldDiscoverWovenSaddle(event.getCursor())) {
+            getServer().getScheduler().runTask(this, () -> discoverWovenSaddleRecipe(player));
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        if (shouldDiscoverWovenSaddle(event.getOldCursor())) {
+            getServer().getScheduler().runTask(this, () -> discoverWovenSaddleRecipe(player));
+        }
     }
 
     private void registerRecipes() {
@@ -70,6 +105,7 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
                 recipe.setIngredient('W', color.woolMaterial());
                 getServer().addRecipe(recipe);
                 recipeKeys.add(key);
+                woolWearRecipeKeys.add(key);
             }
         }
 
@@ -82,16 +118,31 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
             getServer().removeRecipe(key);
         }
         recipeKeys.clear();
+        woolWearRecipeKeys.clear();
+        wovenSaddleRecipeKey = null;
     }
 
     private void discoverRecipesForOnlinePlayers() {
         for (Player player : getServer().getOnlinePlayers()) {
-            discoverWoolWearRecipes(player);
+            discoverRecipesForPlayer(player);
+        }
+    }
+
+    private void discoverRecipesForPlayer(Player player) {
+        discoverWoolWearRecipes(player);
+        if (hasWovenSaddleRecipeTrigger(player)) {
+            discoverWovenSaddleRecipe(player);
         }
     }
 
     private void discoverWoolWearRecipes(Player player) {
-        player.discoverRecipes(recipeKeys);
+        player.discoverRecipes(woolWearRecipeKeys);
+    }
+
+    private void discoverWovenSaddleRecipe(Player player) {
+        if (wovenSaddleRecipeKey != null) {
+            player.discoverRecipe(wovenSaddleRecipeKey);
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -121,6 +172,7 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
 
     private void registerWovenSaddleRecipe() {
         NamespacedKey key = new NamespacedKey(this, "woven_saddle");
+        wovenSaddleRecipeKey = key;
         ShapedRecipe recipe = new ShapedRecipe(key, createWovenSaddle());
         recipe.shape(
             "HHH",
@@ -146,6 +198,29 @@ public final class WoolCraftingPlugin extends JavaPlugin implements Listener {
         meta.getPersistentDataContainer().set(wovenSaddleKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
+    }
+
+    private boolean hasWovenSaddleRecipeTrigger(Player player) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (shouldDiscoverWovenSaddle(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean shouldDiscoverWovenSaddle(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return false;
+        }
+        if (item.getType() == Material.HONEYCOMB) {
+            return true;
+        }
+        if (item.getType() != Material.SADDLE || !item.hasItemMeta()) {
+            return false;
+        }
+        ItemMeta meta = item.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer().has(wovenSaddleKey, PersistentDataType.BOOLEAN);
     }
 
     private List<Material> woolMaterials() {
